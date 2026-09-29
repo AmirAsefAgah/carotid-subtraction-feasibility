@@ -1,0 +1,33 @@
+# Local environments and generated files
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Private inputs, review records, and processing outputs
+private/
+config/
+patients/
+tables/
+figures/
+logs/
+report/
+deliverables/
+cache/
+output/
+stage_*.json
+stage03_multilevel_qc.json
+manifest.csv
+input_fingerprints.json
+environment_versions.json
+visual_review.json
+audit_findings.md
+*.dcm
+*.nii
+*.nii.gz
+*.zip
+.env
+.env.*
+*.pem
+*.key

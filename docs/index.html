@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five-Patient Carotid Subtraction Feasibility Study</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#1a2330; --muted:#5b6472; --faint:#8a93a2;
+    --accent:#1d4ed8; --accent2:#0891b2;
+    --ok:#15803d; --ok-bg:#dcfce7; --ok-bd:#86efac;
+    --warn:#92400e; --warn-bg:#fef3c7; --warn-bd:#fcd34d;
+    --bad:#b91c1c; --bad-bg:#fee2e2; --bad-bd:#fca5a5;
+    --unm:#4b5563; --unm-bg:#e5e7eb; --unm-bd:#c6cdd6;
+    --border:#e1e5eb; --code-bg:#eef1f5; --figframe:#0b0e12;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",Calibri,Arial,sans-serif; line-height:1.55; font-size:15.5px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px;}
+  h1,h2,h3,h4{font-family:"Segoe UI Semibold","Segoe UI",Calibri,Arial,sans-serif; line-height:1.25; color:#0f172a;}
+  h2{font-size:1.55em;margin:0 0 6px;border-bottom:3px solid var(--accent);padding-bottom:8px;}
+  h3{font-size:1.18em;margin:26px 0 8px;color:var(--accent);}
+  h4{font-size:1.0em;margin:16px 0 6px;color:#334155;}
+  p{margin:8px 0;}
+  a{color:var(--accent);}
+  section{margin:46px 0;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px 26px;box-shadow:0 1px 2px rgba(15,23,42,.04);}
+  .lede{font-size:1.05em;color:#334155;}
+  .muted{color:var(--muted);}
+  .small{font-size:0.86em;}
+  code, .mono{font-family:Consolas,"SFMono-Regular",Menlo,monospace;font-size:0.92em;background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+
+  /* header */
+  header.top{background:linear-gradient(135deg,#0f2451,#1d4ed8 65%,#0891b2);color:#fff;padding:34px 0 26px;}
+  header.top .wrap{padding-top:0;}
+  header.top h1{color:#fff;font-size:1.85em;margin:0 0 6px;}
+  header.top .sub{color:#dbeafe;font-size:1.02em;}
+  .meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:5px 13px;font-size:.85em;color:#fff;}
+
+  /* sticky control bar */
+  .ctrlbar{position:sticky;top:0;z-index:50;background:#0f172a;color:#e2e8f0;border-bottom:1px solid #1f2a3d;}
+  .ctrlbar .wrap{display:flex;align-items:center;gap:18px;padding:10px 20px;flex-wrap:wrap;}
+  .ctrlbar label{font-size:.86em;color:#94a3b8;}
+  .ctrlbar select{background:#1e293b;color:#fff;border:1px solid #334155;border-radius:7px;padding:6px 10px;font-size:.95em;}
+  .toc{display:flex;gap:4px;flex-wrap:wrap;font-size:.83em;}
+  .toc a{color:#bcd2ff;text-decoration:none;padding:5px 9px;border-radius:6px;}
+  .toc a:hover{background:#1e293b;}
+
+  /* status pipeline */
+  .pipeline{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0;}
+  .pstep{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--border);border-top:5px solid var(--accent);border-radius:10px;padding:12px 14px;}
+  .pstep .n{font-size:.75em;color:var(--faint);font-weight:600;letter-spacing:.04em;}
+  .pstep h4{margin:2px 0 6px;font-size:1em;}
+  .pstep p{margin:0;font-size:.85em;color:var(--muted);}
+
+  /* badges */
+  .badge{display:inline-block;font-size:.76em;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid;white-space:nowrap;}
+  .badge.ok{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd);}
+  .badge.warn{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd);}
+  .badge.bad{color:var(--bad);background:var(--bad-bg);border-color:var(--bad-bd);}
+  .badge.unm{color:var(--unm);background:var(--unm-bg);border-color:var(--unm-bd);}
+
+  /* toggle button group */
+  .toggle-group{display:inline-flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:4px 0 14px;}
+  .toggle-group button{border:none;background:#f1f5f9;color:#334155;padding:6px 16px;font-size:.86em;cursor:pointer;border-right:1px solid var(--border);}
+  .toggle-group button:last-child{border-right:none;}
+  .toggle-group button.active{background:var(--accent);color:#fff;}
+  .view-controls{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:12px 0 14px;}
+  .view-controls .toggle-group{margin:0;}
+  .picker{display:flex;flex-direction:column;gap:4px;font-size:.8em;font-weight:600;color:#475569;}
+  .picker select{min-width:112px;background:#fff;color:#0f172a;border:1px solid #cbd5e1;border-radius:8px;padding:7px 30px 7px 10px;font-size:1.05em;}
+  .result-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;}
+  .result-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;}
+  .result-box .formula{font-family:Consolas,"SFMono-Regular",Menlo,monospace;font-weight:700;color:#1d4ed8;}
+  .result-box .value{display:block;font-size:1.35em;font-weight:700;color:#0f172a;margin:4px 0;}
+  .formula-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(205px,100%),1fr));gap:12px;margin:16px 0;}
+  .formula-card{border:1px solid var(--border);border-radius:10px;padding:14px;background:#fff;}
+  .formula-card h4{margin:0 0 4px;color:#0f172a;}
+  .formula-card .eq{font-family:Consolas,"SFMono-Regular",Menlo,monospace;color:var(--accent);font-size:1.05em;font-weight:700;}
+  .formula-card p{font-size:.86em;color:var(--muted);}
+  @media (max-width:760px){.result-strip{grid-template-columns:1fr;}}
+
+  /* figure block */
+  .figrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:18px;margin:10px 0 20px;}
+  figure.qc{margin:0;background:var(--figframe);border-radius:10px;overflow:hidden;border:1px solid #1c2430;}
+  figure.qc img{display:block;width:100%;height:auto;background:var(--figframe);}
+  figure.qc figcaption{background:#f8fafc;color:#1e293b;padding:9px 13px;font-size:.82em;border-top:1px solid var(--border);}
+  figure.qc figcaption .cap-line1{font-weight:600;color:#0f172a;}
+  figure.qc figcaption .cap-line2{color:var(--muted);}
+  .single-fig{max-width:760px;}
+
+  /* tables */
+  table{width:100%;border-collapse:collapse;font-size:.87em;margin:10px 0;}
+  th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top;}
+  th{background:#eef2f7;color:#334155;font-weight:600;}
+  tr:nth-child(even) td{background:#fafbfd;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+  .table-wrap{overflow-x:auto;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr;}}
+  @media (max-width:520px){.wrap{padding:0 12px 40px;} .card{padding:16px;}}
+
+
+  ul.limits li{margin:6px 0;}
+  .refs li{margin:10px 0;}
+
+  footer{margin-top:60px;padding:22px 0 10px;border-top:1px solid var(--border);color:var(--muted);font-size:.83em;}
+
+  a.pstep{display:block;color:inherit;text-decoration:none;}
+  a.pstep:hover{border-color:#94a3b8;}
+  figure.qc img{cursor:zoom-in;}
+  figure.example{cursor:pointer;}
+  figure.example img{cursor:pointer;}
+  figure.example:hover{outline:2px solid var(--accent);}
+  #phaseTable tr[data-patient]{cursor:pointer;}
+  #phaseTable tr.sel td{background:#dbeafe;font-weight:600;}
+  #lightbox{position:fixed;inset:0;z-index:100;background:rgba(5,8,12,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;cursor:zoom-out;}
+  #lightbox[hidden]{display:none;}
+  #lightbox img{max-width:100%;max-height:calc(100vh - 80px);object-fit:contain;}
+  #lightbox .lb-cap{color:#e2e8f0;font-size:.85em;margin-top:10px;max-width:1100px;text-align:center;}
+
+  #printNote{display:none;}
+
+  @media print{
+    .ctrlbar{position:static;background:#fff;color:#000;border-bottom:1px solid #999;}
+    .ctrlbar select{background:#fff;color:#000;border:1px solid #999;}
+    .toc{display:none;}
+    header.top{background:#0f2451 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .card{box-shadow:none;border:1px solid #999;}
+    section{margin:24px 0;page-break-inside:avoid;}
+    .figrow{page-break-inside:avoid;}
+    figure.qc{page-break-inside:avoid;}
+    a{color:#000;text-decoration:underline;}
+    #printNote{display:block;background:#fff8e1;border:1px solid #d4a72c;padding:8px 12px;border-radius:6px;font-size:.8em;margin-bottom:10px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1>Five-Patient Carotid Subtraction Feasibility Study</h1>
+    <div class="sub">Technical feasibility report from registered multiphase neck CT</div>
+    <div class="meta-row">
+      <span class="chip">September 2026</span>
+      <span class="chip">Patients P001–P005</span>
+      <span class="chip">15 source volumes · 10 registrations · 25 products</span>
+    </div>
+  </div>
+</header>
+
+<div class="ctrlbar">
+  <div class="wrap">
+    <div>
+      <label for="patientSelect">Patient shown in interactive figures&nbsp;</label>
+      <select id="patientSelect" class="patient-select">
+        <option value="P001">P001</option>
+        <option value="P002">P002</option>
+        <option value="P003">P003</option>
+        <option value="P004">P004</option>
+        <option value="P005">P005</option>
+      </select>
+      <span class="muted small">Updates all figures and values · ← → keys</span>
+    </div>
+    <nav class="toc">
+      <a href="#aim">Aim</a><a href="#preparation">Preparation</a>
+      <a href="#registration">Registration</a><a href="#products-created">Products</a><a href="#assessment">Assessment</a>
+      <a href="#feasibility">Results</a><a href="#limitations">Limitations</a>
+      <a href="#repro">Software</a><a href="#refs">References</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div id="printNote"></div>
+
+<!-- ================= AIM ================= -->
+<section id="aim">
+  <div class="card">
+    <h2>Aim and status</h2>
+    <p class="lede">Register non-contrast (N), arterial (A) and venous (V) neck CT from five patients, compute five
+    fixed subtraction formulas, and check which give usable carotid lumen signal with this acquisition protocol.</p>
+    <p><strong>Main finding:</strong> all five products were generated and gave the expected lumen signal in every
+    patient. Carotid wall-imaging feasibility has not been shown.</p>
+
+    <div class="pipeline">
+      <a class="pstep" href="#preparation" style="border-top-color:var(--ok)"><div class="n">1. PREPARE</div><h4>Audit, mask, crop</h4><p>Inputs checked; body masks and C1–T1 crop generated and reviewed for all five patients.</p><span class="badge ok">Complete</span></a>
+      <a class="pstep" href="#registration" style="border-top-color:var(--ok)"><div class="n">2. ALIGN</div><h4>Register N and V to A</h4><p>All 10 pairs passed geometry and visual checks.</p><span class="badge ok">Complete</span></a>
+      <a class="pstep" href="#products-created" style="border-top-color:var(--ok)"><div class="n">3. CALCULATE</div><h4>Create five products</h4><p>25/25 signed products generated and validated.</p><span class="badge ok">Complete</span></a>
+      <a class="pstep" href="#assessment" style="border-top-color:var(--ok)"><div class="n">4. ASSESS</div><h4>Sample signal and residuals</h4><p>25/25 patient–product combinations accepted at the sampled locations.</p><span class="badge ok">Complete</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PREPARATION ================= -->
+<section id="preparation">
+  <span id="stage1"></span><span id="stage2"></span>
+  <div class="card">
+    <h2>Source volumes and neck crop <span class="badge ok">Complete</span></h2>
+    <p>All 15 NIfTI volumes were checked against their DICOM geometry and HU scaling. The phases have different
+    origins, spacing and orientation, so array indices cannot be subtracted directly; every phase is first mapped to
+    the arterial grid. For <span data-bind="p.code"></span>, that grid has <span data-bind="p.spacing"></span>&nbsp;mm
+    in-plane spacing on a <span data-bind="p.dims"></span> matrix.</p>
+
+    <p><strong>Timing:</strong> the DICOM injection-start field is blank for every series, so delay after injection is
+    unknown. Only acquisition-start intervals are available: for <span data-bind="p.code"></span>, N→A was
+    <span data-bind="p.n2a"></span>&nbsp;s and A→V was <span data-bind="p.a2v"></span>&nbsp;s. V is therefore not
+    assumed to be a 150-second delayed acquisition.</p>
+
+    <div class="view-controls">
+      <label class="picker">Patient
+        <select class="patient-select"><option>P001</option><option>P002</option><option>P003</option><option>P004</option><option>P005</option></select>
+      </label>
+      <div class="toggle-group" data-toggle="stage1phase">
+        <button data-val="N" class="active">Non-contrast (N)</button>
+        <button data-val="A">Arterial (A)</button>
+        <button data-val="V">Venous (V)</button>
+      </div>
+    </div>
+    <div class="figrow">
+      <figure class="qc">
+        <img id="img-stage1" src="assets/P001_N_contact.jpg" alt="Native contact sheet">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: <span id="stage1-phase-label">non-contrast (N)</span>, native grid, before registration</span><br>
+          <span class="cap-line2">W650/L100 HU · <strong>Case note:</strong> <span data-bind="p.watch"></span></span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h3>Neck crop</h3>
+    <p>The body mask uses a −450 HU threshold, connected-component selection and hole filling, which removes the table
+    and exterior air. TotalSegmentator located C1 and T1 on the arterial CT, and the crop runs from the top of C1 to the
+    bottom of T1 with a 15&nbsp;mm margin at each end. For <span data-bind="p.code"></span> this is
+    <span data-bind="p.c1sup"></span> to <span data-bind="p.t1inf"></span>&nbsp;mm (LPS z, <span data-bind="p.lmm"></span>&nbsp;mm),
+    extended to <span data-bind="p.extsup"></span> to <span data-bind="p.extinf"></span>&nbsp;mm. All masks and labels
+    were non-empty, and the masks and crop were accepted on human review.</p>
+
+    <div class="figrow">
+      <figure class="qc">
+        <img data-img-stage2="body" src="assets/P001_stage02_body.jpg" alt="Body envelope contour">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: filled body-envelope contour on arterial CT (axial/coronal/sagittal)</span><br>
+          <span class="cap-line2">Green marks the generated body contour used to restrict registration.</span>
+        </figcaption>
+      </figure>
+      <figure class="qc">
+        <img data-img-stage2="c1t1" src="assets/P001_stage02_c1t1.jpg" alt="C1/T1 landmark QC">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: TotalSegmentator C1 (lime) / T1 (cyan) labels used to define the ROI</span><br>
+          <span class="cap-line2">Axial through each vertebra, plus coronal and sagittal · labels define the crop boundary before the 15&nbsp;mm margin</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REGISTRATION ================= -->
+<section id="registration">
+  <span id="stage3"></span>
+  <div class="card">
+    <h2>Registration to the arterial grid <span class="badge ok">10/10 pairs</span></h2>
+    <p>A is the fixed image, so the native CTA is never interpolated. N and V were registered to it with a rigid
+    six-parameter transform (SimpleITK, Mattes mutual information, three resolution levels) inside the body mask.
+    Clipped intensities were used only by the optimizer; each final transform was applied once to the original HU
+    volume with linear interpolation. Support masks record where each resampled phase has data, and their
+    intersection is used for all arithmetic and measurements.</p>
+    <p>All N→A and V→A pairs passed transform-direction and geometry checks and were accepted on visual review.
+    No deformable step or local rescue was needed.</p>
+
+    <div class="view-controls">
+      <label class="picker">Patient
+        <select class="patient-select"><option>P001</option><option>P002</option><option>P003</option><option>P004</option><option>P005</option></select>
+      </label>
+      <div class="toggle-group" data-toggle="stage3pair">
+        <button data-val="N_to_A" class="active">N → A</button>
+        <button data-val="V_to_A">V → A</button>
+      </div>
+    </div>
+    <div class="figrow">
+      <figure class="qc">
+        <img data-img-stage3="regqc" src="assets/P001_N_to_A_regqc.jpg" alt="Registration before/after">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: <span id="stage3-pair-label">N→A</span> registration, fixed A vs. registered phase</span><br>
+          <span class="cap-line2">Axial, coronal and sagittal planes at matched coordinates · source panels, red/cyan overlay and checkerboard. Edges that line up across checkerboard tiles indicate good alignment.</span>
+        </figcaption>
+      </figure>
+      <figure class="qc">
+        <img data-img-stage3="closeups" src="assets/P001_N_to_A_closeups.jpg" alt="Bilateral carotid close-ups">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: bilateral carotid-region close-up, <span id="stage3-pair-label2">N→A</span></span><br>
+          <span class="cap-line2">ROI-centred axial views · yellow circle marks the sampled lumen</span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SUBTRACTION PRODUCTS ================= -->
+<section id="products-created">
+  <span id="stage4"></span>
+  <div class="card">
+    <h2>Subtraction products <span class="badge ok">25/25 validated</span></h2>
+    <p>Each product is voxelwise arithmetic on the shared arterial grid, with no normalization or clipping, so values
+    stay in HU-derived units. All outputs are signed float32.</p>
+
+    <div class="formula-cards">
+      <div class="formula-card"><h4>Arterial enhancement</h4><div class="eq">A − N</div><p>Contrast arrival relative to baseline. Lumen is strongly positive; static tissue and bone should cancel.</p></div>
+      <div class="formula-card"><h4>Venous enhancement</h4><div class="eq">V − N</div><p>Later-phase enhancement, including veins, slower-enhancing tissue and remaining arterial signal.</p></div>
+      <div class="formula-card"><h4>Temporal change</h4><div class="eq">V − A</div><p>Compares the two enhanced phases. Arterial lumen is negative where A is brighter than V.</p></div>
+      <div class="formula-card"><h4>Dark lumen</h4><div class="eq">2N − A</div><p>N minus the arterial enhancement (after Deng et al.). Lumen is dark; bone stays bright by design.</p></div>
+      <div class="formula-card"><h4>Venous washout</h4><div class="eq">2V − A</div><p>V plus the A→V change (after Lu et al.). The lumen value reflects contrast washout between A and V.</p></div>
+    </div>
+
+    <h3>Worked example for <span data-bind="p.code"></span></h3>
+    <p>Lumen means at the same coordinates in each phase predict the product values:</p>
+    <div class="result-strip">
+      <div class="result-box"><span class="formula">Source lumen</span><span class="value"><span data-bind="p.n_lumen"></span> / <span data-bind="p.a_lumen"></span> / <span data-bind="p.v_lumen"></span> HU</span><span class="small muted">N / A / V</span></div>
+      <div class="result-box"><span class="formula">Differences</span><span class="value"><span data-bind="p.an"></span> / <span data-bind="p.vn"></span> / <span data-bind="p.va"></span></span><span class="small muted">A−N / V−N / V−A</span></div>
+      <div class="result-box"><span class="formula">Composites</span><span class="value"><span data-bind="p.darkn"></span> / <span data-bind="p.darkv"></span></span><span class="small muted">2N−A / 2V−A</span></div>
+    </div>
+    <p>For example, 2V−A = V + (V−A) = <span data-bind="p.v_lumen"></span> + (<span data-bind="p.va"></span>)
+    = <span data-bind="p.darkv"></span>. All patients are compared in the <a href="#phase-table">phase table</a>.</p>
+
+    <h3>Products at matched anatomy</h3>
+    <div class="view-controls">
+      <label class="picker">Patient
+        <select class="patient-select"><option>P001</option><option>P002</option><option>P003</option><option>P004</option><option>P005</option></select>
+      </label>
+      <div class="toggle-group" data-toggle="stage4view">
+        <button data-val="axial" class="active">Axial, five products</button>
+        <button data-val="coronal">Coronal, five products</button>
+        <button data-val="bilateral">ROI-centred close-ups</button>
+      </div>
+    </div>
+    <div class="figrow">
+      <figure class="qc single-fig" style="max-width:100%;">
+        <img id="img-stage4" src="assets/P001_stage04_axial.jpg" alt="Subtraction and reconstruction products">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: <span id="stage4-view-label">matched axial view, all five products</span></span><br>
+          <span class="cap-line2" id="stage4-loc"></span><br>
+          <span class="cap-line2"><strong>Residuals:</strong> <span data-bind="p.residual"></span></span>
+        </figcaption>
+      </figure>
+    </div>
+    <p class="small muted"><strong>Display:</strong> patient left is on screen left (not radiological convention); every
+    panel carries L/R/A/P/S/I markers. Sources W650/L100, 2N−A and 2V−A W650/L30, differences ±300 on a
+    red (positive) / blue (negative) scale. Black means outside measured support, not 0&nbsp;HU tissue.</p>
+  </div>
+</section>
+
+<!-- ================= ASSESSMENT ================= -->
+<section id="assessment">
+  <span id="stage5"></span>
+  <div class="card">
+    <h2>Sampled signal and residuals <span class="badge ok">Complete</span></h2>
+    <p>Four spheres were placed on the source arterial CT of each patient: left and right carotid lumen (1.25&nbsp;mm
+    radius), paraspinal muscle (3&nbsp;mm) and bone (1.5&nbsp;mm). The same physical LPS coordinates were then read in N,
+    A, V and all five products without re-centring. Every sphere lay fully inside valid support.</p>
+    <p>A product was accepted for a patient when the sampled lumen was covered, the signal had the expected sign
+    (A−N positive; V−A negative; 2N−A and 2V−A lumen below same-product muscle) and no local artifact dominated the
+    sampled region on visual review. All 25 patient–product combinations met these criteria. Recomputed ROI
+    arithmetic agreed with the saved values within 0.001&nbsp;HU.</p>
+
+    <div class="view-controls">
+      <label class="picker">Patient
+        <select class="patient-select"><option>P001</option><option>P002</option><option>P003</option><option>P004</option><option>P005</option></select>
+      </label>
+    </div>
+
+    <div class="figrow">
+      <figure class="qc">
+        <img data-img-stage5="roimap" src="assets/P001_stage05_roimap.jpg" alt="ROI map">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: sample locations on arterial CT</span><br>
+          <span class="cap-line2">Yellow circles: left and right lumen, muscle and bone samples</span>
+        </figcaption>
+      </figure>
+      <figure class="qc">
+        <img data-img-stage5="matched" src="assets/P001_stage05_matched.jpg" alt="Matched products at ROI">
+        <figcaption>
+          <span class="cap-line1"><span data-bind="p.code"></span>: the same lumen sample in N, A, V and all five products</span><br>
+          <span class="cap-line2">Top row patient right, bottom row patient left · mean value printed above each panel</span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h3>Examples</h3>
+    <p class="small muted">Click an example to load that patient into every figure.</p>
+    <div class="figrow">
+      <figure class="qc example" data-patient="P003">
+        <img src="assets/P003_stage05_matched.jpg" alt="P003 matched lumen samples">
+        <figcaption><span class="cap-line1">P003: largest arterial enhancement</span><br>
+        <span class="cap-line2">A−N 430.1 and 2N−A −395.6 at the lumen samples.</span></figcaption>
+      </figure>
+      <figure class="qc example" data-patient="P005">
+        <img src="assets/P005_stage05_matched.jpg" alt="P005 matched lumen samples">
+        <figcaption><span class="cap-line1">P005: smallest A→V washout</span><br>
+        <span class="cap-line2">V lumen stays at 199.2&nbsp;HU (V−A −218.2), so the 2V−A lumen is −19.0.</span></figcaption>
+      </figure>
+      <figure class="qc example" data-patient="P002">
+        <img src="assets/P002_stage05_matched.jpg" alt="P002 matched lumen samples">
+        <figcaption><span class="cap-line1">P002: most visible residual edges</span><br>
+        <span class="cap-line2">Bone and airway edges remain in the difference images; the lumen samples are unaffected.</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESULTS ================= -->
+<section id="feasibility">
+  <div class="card">
+    <h2>Results</h2>
+    <p>All 25 patient–product combinations were accepted (5 patients × 5 products). Values are HU-derived.</p>
+
+    <h3>Measurements for <span data-bind="p.code"></span></h3>
+    <div class="view-controls">
+      <label class="picker">Patient
+        <select class="patient-select"><option>P001</option><option>P002</option><option>P003</option><option>P004</option><option>P005</option></select>
+      </label>
+    </div>
+    <div class="table-wrap">
+    <table id="detailTable">
+      <tr><th>Product</th><th>Formula</th><th>Lumen mean</th><th>Muscle mean ± SD</th><th>Bone mean</th><th>Bone mean abs. residual</th></tr>
+    </table>
+    </div>
+    <p class="small muted">Lumen is the mean of the left and right sample means. Bone residual is not reported for
+    2N−A and 2V−A because those formulas retain bone.</p>
+
+    <h3>Cohort</h3>
+    <p class="small muted">Median of the five patient-level values (range).</p>
+    <div class="table-wrap">
+    <table>
+      <tr><th>Product</th><th>Lumen mean</th><th>Muscle mean</th><th>Muscle SD</th></tr>
+      <tr><td>A − N</td><td class="num">349.4 (304.5 to 430.1)</td><td class="num">4.1 (−6.9 to 20.6)</td><td class="num">28.6 (13.4 to 35.5)</td></tr>
+      <tr><td>V − N</td><td class="num">120.1 (75.0 to 150.8)</td><td class="num">21.1 (2.0 to 48.6)</td><td class="num">24.3 (15.4 to 45.0)</td></tr>
+      <tr><td>V − A</td><td class="num">−229.3 (−308.3 to −218.2)</td><td class="num">12.3 (−2.1 to 29.8)</td><td class="num">28.3 (13.7 to 32.8)</td></tr>
+      <tr><td>2N − A</td><td class="num">−301.7 (−395.6 to −259.8)</td><td class="num">30.0 (0.7 to 39.2)</td><td class="num">38.8 (20.9 to 51.3)</td></tr>
+      <tr><td>2V − A</td><td class="num">−93.4 (−151.9 to −19.0)</td><td class="num">81.4 (32.4 to 103.8)</td><td class="num">37.9 (20.7 to 65.9)</td></tr>
+    </table>
+    </div>
+
+    <h3 id="phase-table">Lumen attenuation by phase</h3>
+    <p>The product values follow directly from the source phases. 2N−A is N minus the arterial enhancement (A−N).
+    2V−A is V plus the A→V change (V−A), so its lumen value reflects washout between the two enhanced phases.</p>
+    <div class="table-wrap">
+    <table id="phaseTable">
+      <tr><th>Patient</th><th>N</th><th>A</th><th>V</th><th>A − N</th><th>V − A</th><th>2N − A</th><th>2V − A</th></tr>
+      <tr data-patient="P001"><td>P001</td><td class="num">47.7</td><td class="num">397.1</td><td class="num">167.8</td><td class="num">349.4</td><td class="num">−229.3</td><td class="num">−301.7</td><td class="num">−61.5</td></tr>
+      <tr data-patient="P002"><td>P002</td><td class="num">44.7</td><td class="num">349.2</td><td class="num">127.9</td><td class="num">304.5</td><td class="num">−221.3</td><td class="num">−259.8</td><td class="num">−93.4</td></tr>
+      <tr data-patient="P003"><td>P003</td><td class="num">34.5</td><td class="num">464.7</td><td class="num">156.4</td><td class="num">430.1</td><td class="num">−308.3</td><td class="num">−395.6</td><td class="num">−151.9</td></tr>
+      <tr data-patient="P004"><td>P004</td><td class="num">47.1</td><td class="num">380.5</td><td class="num">122.1</td><td class="num">333.3</td><td class="num">−258.3</td><td class="num">−286.2</td><td class="num">−136.2</td></tr>
+      <tr data-patient="P005"><td>P005</td><td class="num">48.4</td><td class="num">417.4</td><td class="num">199.2</td><td class="num">369.0</td><td class="num">−218.2</td><td class="num">−320.6</td><td class="num">−19.0</td></tr>
+    </table>
+    </div>
+    <p class="small muted">Patient-level lumen means (HU). Click a row to select that patient.</p>
+
+    <h3>Relation to published methods</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><th>Formula</th><th>Published method</th><th>This study</th></tr>
+      <tr><td>2N − A</td>
+          <td>Deng et al.: registered CTA subtracted from non-contrast CT, then non-contrast CT added back.</td>
+          <td>Same arithmetic, computed on the arterial grid rather than the non-contrast grid.</td></tr>
+      <tr><td>2V − A</td>
+          <td>Lu et al.: delayed phase 150&nbsp;s after injection, combined with the arterial phase on a vendor workstation.</td>
+          <td>Unit-weight formula on the routine venous phase. Injection-relative timing is unknown; A and V acquisition starts were 40–45&nbsp;s apart.</td></tr>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LIMITATIONS ================= -->
+<section id="limitations">
+  <div class="card">
+    <h2>Limitations</h2>
+    <ul class="limits">
+      <li>Five patients; technical pilot evidence only.</li>
+      <li>Lumen, muscle and bone samples were placed with AI assistance. Exact bifurcation, common carotid, wall and
+      plaque locations were not expert-localized.</li>
+      <li>Registration was accepted on visual review and vertebral centroid checks; local landmark error was not measured.</li>
+      <li>Residual bone, airway and perivascular edges remain in the difference images (highest in P002, up to
+      310.6&nbsp;HU mean absolute residual). Their causes were not isolated.</li>
+      <li>Common three-phase coverage was 92.3–98.8% of the arterial body within the crop. P004 loses about 16&nbsp;mm
+      inferiorly and P005 about 10&nbsp;mm superiorly; carotid coverage in those margins was not checked separately.</li>
+      <li>Venous-phase timing after injection is unknown.</li>
+      <li>Muscle SD includes interpolation correlation and tissue heterogeneity, not scanner noise alone.</li>
+      <li>Wall visibility, wall-to-lumen contrast, plaque and diagnostic performance were not measured.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= SOFTWARE ================= -->
+<section id="repro">
+  <div class="card">
+    <h2>Software and parameters</h2>
+    <div class="grid2">
+      <div>
+        <table>
+          <tr><th>Component</th><th>Version</th></tr>
+          <tr><td>Python</td><td class="mono">3.12.7</td></tr>
+          <tr><td>SimpleITK</td><td class="mono">2.5.6</td></tr>
+          <tr><td>NumPy</td><td class="mono">1.26.4</td></tr>
+          <tr><td>Matplotlib</td><td class="mono">3.9.2</td></tr>
+          <tr><td>TotalSegmentator</td><td class="mono">2.18.0 (task "total")</td></tr>
+          <tr><td>pydicom (DICOM audit)</td><td class="mono">3.0.2, Python 3.12.2</td></tr>
+        </table>
+      </div>
+      <div>
+        <table>
+          <tr><th>Parameter</th><th>Value</th></tr>
+          <tr><td>Registration</td><td class="mono">rigid, 6 DOF, Mattes MI</td></tr>
+          <tr><td>Random seed</td><td class="mono">20260913</td></tr>
+          <tr><td>Body threshold</td><td class="mono">−450 HU</td></tr>
+          <tr><td>Crop margin</td><td class="mono">15 mm each end</td></tr>
+          <tr><td>Interpolation</td><td class="mono">linear (HU), nearest (labels)</td></tr>
+        </table>
+      </div>
+    </div>
+    <p><strong>Acquisition:</strong> 120&nbsp;kVp, kernel SB, 1&nbsp;mm slices at 0.5&nbsp;mm interval, 512×512 matrix,
+    0.465–0.549&nbsp;mm in-plane spacing.</p>
+    <p><strong>Validation:</strong> the stage validators passed for all five stages, and the body masks and crop were
+    accepted on human review. The synthetic tests in <code>scripts/</code> run without patient data.</p>
+    <p class="small muted">Figures are JPEG renderings labelled with study codes only. Source DICOM/NIfTI data and
+    review records are not distributed.</p>
+  </div>
+</section>
+
+<!-- ================= REFERENCES ================= -->
+<section id="refs">
+  <div class="card">
+    <h2>References</h2>
+    <ol class="refs">
+      <li>Lu Y, Cao R, Jiao S, et al. A novel method of carotid artery wall imaging: black-blood CT. <em>Eur Radiol</em>.
+      2024;34(4):2407–2415. <a href="https://doi.org/10.1007/s00330-023-10247-5" target="_blank" rel="noopener">doi:10.1007/s00330-023-10247-5</a></li>
+      <li>Deng C, Wang X, Zhu R, Wu S. A radiomics model based on CTA subtraction imaging for differentiating symptomatic
+      and asymptomatic carotid plaques: a retrospective study. <em>BMC Cardiovasc Disord</em>. 2026;26.
+      <a href="https://doi.org/10.1186/s12872-026-06045-8" target="_blank" rel="noopener">doi:10.1186/s12872-026-06045-8</a></li>
+      <li>Wasserthal J, Breit HC, Meyer MT, et al. TotalSegmentator: robust segmentation of 104 anatomic structures in CT
+      images. <em>Radiol Artif Intell</em>. 2023;5(5):e230024.
+      <a href="https://doi.org/10.1148/ryai.230024" target="_blank" rel="noopener">doi:10.1148/ryai.230024</a></li>
+      <li>Lowekamp BC, Chen DT, Ibáñez L, Blezek D. The design of SimpleITK. <em>Front Neuroinform</em>. 2013;7:45.
+      <a href="https://doi.org/10.3389/fninf.2013.00045" target="_blank" rel="noopener">doi:10.3389/fninf.2013.00045</a></li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  Five-patient technical pilot · September 2026
+</footer>
+
+<div id="lightbox" hidden><img alt=""><div class="lb-cap"></div></div>
+
+</div><!-- /wrap -->
+
+<script>
+const PATIENTS = {
+  P001:{code:"P001",spacing:"0.469",dims:"512×512×647",n2a:"74.1",a2v:"45.0",
+        watch:"No additional case-specific issue beyond expected table/support material in the unmasked source CT.",
+        n_lumen:"47.7",a_lumen:"397.1",v_lumen:"167.8",an:"349.4",vn:"120.1",va:"−229.3",darkn:"−301.7",darkv:"−61.5",
+        c1sup:"-548.0",t1inf:"-678.0",lmm:"130.0",extsup:"-533.0",extinf:"-693.0",
+        axidx:"195",axz:"-595.2",coridx:"218",cory:"-43.3",coverage:"97.2",
+        residual:"Residual opposing edges at vertebral margins; small perivascular rims. Arterial and temporal lumen signals remain clear."},
+  P002:{code:"P002",spacing:"0.508",dims:"512×512×487",n2a:"122.8",a2v:"39.9",
+        watch:"Prominent dental streak artifact is present in all phases; local alignment near the mouth and upper neck warrants attention.",
+        n_lumen:"44.7",a_lumen:"349.2",v_lumen:"127.9",an:"304.5",vn:"83.2",va:"−221.3",darkn:"−259.8",darkv:"−93.4",
+        c1sup:"-617.5",t1inf:"-753.0",lmm:"135.5",extsup:"-602.5",extinf:"-768.0",
+        axidx:"195",axz:"-670.2",coridx:"238",cory:"-11.5",coverage:"95.3",
+        residual:"Prominent opposing airway-edge bands and vertebral-edge residuals in ordinary differences; sampled carotid interiors remain interpretable. Bone absolute residual is highest in this patient."},
+  P003:{code:"P003",spacing:"0.535",dims:"512×512×637",n2a:"121.6",a2v:"45.0",
+        watch:"The venous phase uses series 7; later series 8/9 acquisitions from the same visit were not used.",
+        n_lumen:"34.5",a_lumen:"464.7",v_lumen:"156.4",an:"430.1",vn:"121.9",va:"−308.3",darkn:"−395.6",darkv:"−151.9",
+        c1sup:"-590.0",t1inf:"-723.0",lmm:"133.0",extsup:"-575.0",extinf:"-738.0",
+        axidx:"193",axz:"-641.3",coridx:"196",cory:"-32.1",coverage:"97.9",
+        residual:"Small bone-edge residual bands; strong positive arterial lumen and negative temporal lumen at both samples."},
+  P004:{code:"P004",spacing:"0.547",dims:"512×512×437",n2a:"130.7",a2v:"41.0",
+        watch:"Common native z-coverage excludes ≈16.2 mm of A's inferior extent; this is a field-of-view difference, not a confirmed carotid loss.",
+        n_lumen:"47.1",a_lumen:"380.5",v_lumen:"122.1",an:"333.3",vn:"75.0",va:"−258.3",darkn:"−286.2",darkv:"−136.2",
+        c1sup:"-582.2",t1inf:"-728.8",lmm:"146.5",extsup:"-567.2",extinf:"-743.8",
+        axidx:"211",axz:"-638.0",coridx:"260",cory:"-25.7",coverage:"92.3",
+        residual:"Opposing perivascular edges near the right sample and at bone margins. Muscle SD is comparatively high."},
+  P005:{code:"P005",spacing:"0.502",dims:"512×512×537",n2a:"131.6",a2v:"43.0",
+        watch:"Dense right thoracic-inlet contrast/streak in A and V; common z-coverage excludes ≈10 mm of A's superior extent.",
+        n_lumen:"48.4",a_lumen:"417.4",v_lumen:"199.2",an:"369.0",vn:"150.8",va:"−218.2",darkn:"−320.6",darkv:"−19.0",
+        c1sup:"-523.8",t1inf:"-661.3",lmm:"137.5",extsup:"-508.8",extinf:"-676.3",
+        axidx:"196",axz:"-578.1",coridx:"214",cory:"-22.2",coverage:"98.8",
+        residual:"Opposing vertebral-edge bands and vessel rims. V lumen remains bright (199.2 HU), so the 2V−A lumen is close to gray."}
+};
+
+const PRODUCT_METRICS = {"P001": {"arterial_enhancement": {"formula": "A - N", "lumen_mean": 349.4, "muscle_mean": 3.7, "muscle_sd": 28.6, "bone_mean": -20.1, "bone_absres": 86.0}, "venous_enhancement": {"formula": "V - N", "lumen_mean": 120.1, "muscle_mean": 33.5, "muscle_sd": 37.9, "bone_mean": -39.1, "bone_absres": 134.6}, "temporal_difference": {"formula": "V - A", "lumen_mean": -229.3, "muscle_mean": 29.8, "muscle_sd": 32.8, "bone_mean": -19.1, "bone_absres": 85.0}, "dark_lumen_N": {"formula": "2*N - A", "lumen_mean": -301.7, "muscle_mean": 36.8, "muscle_sd": 38.8, "bone_mean": 729.3, "bone_absres": null}, "dark_lumen_V": {"formula": "2*V - A", "lumen_mean": -61.5, "muscle_mean": 103.8, "muscle_sd": 56.5, "bone_mean": 651.0, "bone_absres": null}}, "P002": {"arterial_enhancement": {"formula": "A - N", "lumen_mean": 304.5, "muscle_mean": 4.1, "muscle_sd": 13.4, "bone_mean": 64.2, "bone_absres": 267.9}, "venous_enhancement": {"formula": "V - N", "lumen_mean": 83.2, "muscle_mean": 2.0, "muscle_sd": 15.4, "bone_mean": -54.3, "bone_absres": 129.0}, "temporal_difference": {"formula": "V - A", "lumen_mean": -221.3, "muscle_mean": -2.1, "muscle_sd": 13.7, "bone_mean": -118.6, "bone_absres": 310.6}, "dark_lumen_N": {"formula": "2*N - A", "lumen_mean": -259.8, "muscle_mean": 28.3, "muscle_sd": 20.9, "bone_mean": 533.6, "bone_absres": null}, "dark_lumen_V": {"formula": "2*V - A", "lumen_mean": -93.4, "muscle_mean": 32.4, "muscle_sd": 20.7, "bone_mean": 424.9, "bone_absres": null}}, "P003": {"arterial_enhancement": {"formula": "A - N", "lumen_mean": 430.1, "muscle_mean": 20.6, "muscle_sd": 35.5, "bone_mean": 44.6, "bone_absres": 47.1}, "venous_enhancement": {"formula": "V - N", "lumen_mean": 121.9, "muscle_mean": 21.1, "muscle_sd": 20.9, "bone_mean": 1.5, "bone_absres": 22.6}, "temporal_difference": {"formula": "V - A", "lumen_mean": -308.3, "muscle_mean": 0.5, "muscle_sd": 28.3, "bone_mean": -43.1, "bone_absres": 47.8}, "dark_lumen_N": {"formula": "2*N - A", "lumen_mean": -395.6, "muscle_mean": 39.2, "muscle_sd": 48.8, "bone_mean": 547.2, "bone_absres": null}, "dark_lumen_V": {"formula": "2*V - A", "lumen_mean": -151.9, "muscle_mean": 81.4, "muscle_sd": 37.9, "bone_mean": 550.3, "bone_absres": null}}, "P004": {"arterial_enhancement": {"formula": "A - N", "lumen_mean": 333.3, "muscle_mean": 19.4, "muscle_sd": 32.7, "bone_mean": 41.6, "bone_absres": 128.1}, "venous_enhancement": {"formula": "V - N", "lumen_mean": 75.0, "muscle_mean": 48.6, "muscle_sd": 45.0, "bone_mean": 51.9, "bone_absres": 165.7}, "temporal_difference": {"formula": "V - A", "lumen_mean": -258.3, "muscle_mean": 29.2, "muscle_sd": 30.6, "bone_mean": 10.3, "bone_absres": 52.0}, "dark_lumen_N": {"formula": "2*N - A", "lumen_mean": -286.2, "muscle_mean": 0.7, "muscle_sd": 51.3, "bone_mean": 402.6, "bone_absres": null}, "dark_lumen_V": {"formula": "2*V - A", "lumen_mean": -136.2, "muscle_mean": 97.9, "muscle_sd": 65.9, "bone_mean": 506.4, "bone_absres": null}}, "P005": {"arterial_enhancement": {"formula": "A - N", "lumen_mean": 369.0, "muscle_mean": -6.9, "muscle_sd": 21.2, "bone_mean": -3.2, "bone_absres": 42.7}, "venous_enhancement": {"formula": "V - N", "lumen_mean": 150.8, "muscle_mean": 5.4, "muscle_sd": 24.3, "bone_mean": 38.6, "bone_absres": 43.8}, "temporal_difference": {"formula": "V - A", "lumen_mean": -218.2, "muscle_mean": 12.3, "muscle_sd": 13.9, "bone_mean": 41.8, "bone_absres": 58.2}, "dark_lumen_N": {"formula": "2*N - A", "lumen_mean": -320.6, "muscle_mean": 30.0, "muscle_sd": 29.9, "bone_mean": 510.6, "bone_absres": null}, "dark_lumen_V": {"formula": "2*V - A", "lumen_mean": -19.0, "muscle_mean": 40.7, "muscle_sd": 37.1, "bone_mean": 587.8, "bone_absres": null}}};
+
+const PRODUCT_LABELS = [
+  ["arterial_enhancement","Arterial enhancement"],
+  ["venous_enhancement","Venous enhancement"],
+  ["temporal_difference","Temporal change"],
+  ["dark_lumen_N","Dark lumen"],
+  ["dark_lumen_V","Venous washout"]
+];
+
+let state = {patient:"P001", stage1phase:"N", stage3pair:"N_to_A", stage4view:"axial"};
+
+function fmt(v){ return v===null||v===undefined ? "Not available" : v; }
+
+function renderDetailTable(){
+  const tbl = document.getElementById("detailTable");
+  while(tbl.rows.length>1) tbl.deleteRow(1);
+  const pm = PRODUCT_METRICS[state.patient];
+  PRODUCT_LABELS.forEach(([key,label])=>{
+    const m = pm[key];
+    const row = tbl.insertRow(-1);
+    row.innerHTML = `<td>${label}</td><td class="mono">${m.formula}</td>` +
+      `<td class="num">${fmt(m.lumen_mean)}</td>` +
+      `<td class="num">${fmt(m.muscle_mean)} ± ${fmt(m.muscle_sd)}</td>` +
+      `<td class="num">${fmt(m.bone_mean)}</td>` +
+      `<td class="num">${m.bone_absres===null?'<span class="muted">—</span>':m.bone_absres}</td>`;
+  });
+}
+
+function applyBindings(){
+  const p = PATIENTS[state.patient];
+  document.querySelectorAll("[data-bind]").forEach(el=>{
+    const path = el.getAttribute("data-bind").split(".")[1];
+    el.textContent = p[path];
+  });
+}
+
+function applyImages(){
+  const p = state.patient;
+  document.getElementById("img-stage1").src = `assets/${p}_${state.stage1phase}_contact.jpg`;
+  document.querySelector('[data-img-stage2="body"]').src = `assets/${p}_stage02_body.jpg`;
+  document.querySelector('[data-img-stage2="c1t1"]').src = `assets/${p}_stage02_c1t1.jpg`;
+  document.querySelector('[data-img-stage3="regqc"]').src = `assets/${p}_${state.stage3pair}_regqc.jpg`;
+  document.querySelector('[data-img-stage3="closeups"]').src = `assets/${p}_${state.stage3pair}_closeups.jpg`;
+  document.querySelector('[data-img-stage5="roimap"]').src = `assets/${p}_stage05_roimap.jpg`;
+  document.querySelector('[data-img-stage5="matched"]').src = `assets/${p}_stage05_matched.jpg`;
+  const s4map = {axial:`${p}_stage04_axial.jpg`, coronal:`${p}_stage04_coronal.jpg`, bilateral:`${p}_stage04_bilateral.jpg`};
+  document.getElementById("img-stage4").src = `assets/${s4map[state.stage4view]}`;
+
+  const phaseNames = {N:"non-contrast (N)", A:"arterial (A)", V:"venous (V)"};
+  document.getElementById("stage1-phase-label").textContent = phaseNames[state.stage1phase];
+  const pairNames = {N_to_A:"N→A", V_to_A:"V→A"};
+  document.getElementById("stage3-pair-label").textContent = pairNames[state.stage3pair];
+  document.getElementById("stage3-pair-label2").textContent = pairNames[state.stage3pair];
+  const s4Labels = {axial:"matched axial view, all five products", coronal:"matched coronal view, all five products", bilateral:"ROI-centred axial close-ups, source A plus five products"};
+  document.getElementById("stage4-view-label").textContent = s4Labels[state.stage4view];
+  const pt = PATIENTS[p];
+  document.getElementById("stage4-loc").textContent = state.stage4view === "coronal"
+    ? `Coronal slice ${pt.coridx}, LPS y = ${pt.cory} mm, through the lumen samples`
+    : state.stage4view === "bilateral"
+      ? `Axial slice ${pt.axidx}, LPS z = ${pt.axz} mm · yellow circle is the lumen sample; its mean is printed above each panel`
+      : `Axial slice ${pt.axidx}, LPS z = ${pt.axz} mm · black is outside measured support`;
+}
+
+function refresh(){
+  document.querySelectorAll(".patient-select").forEach(select=>{ select.value = state.patient; });
+  applyBindings();
+  applyImages();
+  renderDetailTable();
+  document.querySelectorAll("#phaseTable tr[data-patient]").forEach(tr=>{
+    tr.classList.toggle("sel", tr.dataset.patient === state.patient);
+  });
+}
+
+function setPatient(id){
+  if(!PATIENTS[id]) return;
+  state.patient = id;
+  refresh();
+}
+
+document.querySelectorAll(".patient-select").forEach(select=>{
+  select.addEventListener("change", e=>{
+    setPatient(e.target.value);
+  });
+});
+
+document.querySelectorAll(".toggle-group").forEach(group=>{
+  const key = group.getAttribute("data-toggle");
+  group.querySelectorAll("button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      group.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      state[key] = btn.getAttribute("data-val");
+      refresh();
+    });
+  });
+});
+
+document.querySelectorAll("figure.example").forEach(fig=>{
+  fig.addEventListener("click", ()=>{
+    setPatient(fig.dataset.patient);
+    document.getElementById("assessment").scrollIntoView();
+  });
+});
+
+document.querySelectorAll("#phaseTable tr[data-patient]").forEach(tr=>{
+  tr.addEventListener("click", ()=>setPatient(tr.dataset.patient));
+});
+
+const lightbox = document.getElementById("lightbox");
+let lightboxSource = null;
+function openLightbox(img){
+  lightboxSource = img;
+  lightbox.querySelector("img").src = img.src;
+  lightbox.querySelector("img").alt = img.alt;
+  const cap = img.closest("figure").querySelector("figcaption");
+  lightbox.querySelector(".lb-cap").textContent = cap ? cap.textContent.replace(/\s+/g," ").trim() : "";
+  lightbox.hidden = false;
+}
+document.querySelectorAll("figure.qc:not(.example) img").forEach(img=>{
+  img.addEventListener("click", ()=>openLightbox(img));
+});
+lightbox.addEventListener("click", ()=>{ lightbox.hidden = true; });
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape"){ lightbox.hidden = true; return; }
+  if(e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  if(e.target.closest && e.target.closest("input, select, textarea")) return;
+  const ids = Object.keys(PATIENTS);
+  const i = ids.indexOf(state.patient) + (e.key === "ArrowRight" ? 1 : -1);
+  setPatient(ids[(i + ids.length) % ids.length]);
+  if(!lightbox.hidden) openLightbox(lightboxSource);
+});
+
+window.addEventListener("beforeprint", ()=>{
+  document.getElementById("printNote").textContent =
+    `Printed view: patient ${state.patient}; source phase ${state.stage1phase}; registration pair ${state.stage3pair}; product view ${state.stage4view}. Change any synchronized patient selector before printing to capture another patient's figures.`;
+});
+
+refresh();
+</script>
+</body>
+</html>

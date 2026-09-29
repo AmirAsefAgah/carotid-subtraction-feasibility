@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "project_root": ".",
+  "source_root": "./private/source",
+  "output_root": ".",
+  "patients": [
+    "P001",
+    "P002",
+    "P003",
+    "P004",
+    "P005"
+  ],
+  "phases": [
+    "N",
+    "A",
+    "V"
+  ],
+  "reference_phase": "A",
+  "reference_spacing": "native",
+  "coordinate_convention": "NIfTI RAS; SimpleITK/DICOM LPS; explicit conversion diag(-1,-1,1)",
+  "resample_inputs": false,
+  "normalize_intensities": false,
+  "apply_dicom_rescale_to_nifti": false,
+  "random_seed": 20260913,
+  "main_python": "python",
+  "dicom_python": "python",
+  "audit": {
+    "qform_sform_corner_tolerance_mm": 0.001,
+    "dicom_geometry_review_tolerance_mm": 0.0005,
+    "dicom_geometry_block_tolerance_mm": 0.01,
+    "hu_sample_tolerance": 0.01,
+    "dicom_sample_slice_fractions": [
+      0,
+      0.2,
+      0.5,
+      0.8,
+      1
+    ],
+    "dicom_sample_pixel_step": 32,
+    "contact_sheet_fractions": [
+      0,
+      0.17,
+      0.33,
+      0.5,
+      0.67,
+      0.83,
+      1
+    ],
+    "display_window_width": 650,
+    "display_window_level": 100,
+    "display_interpolation": "nearest"
+  }
+}

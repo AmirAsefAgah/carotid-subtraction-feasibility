@@ -1,0 +1,6 @@
+numpy>=1.26,<3
+scipy
+SimpleITK>=2.5,<3
+matplotlib>=3.9,<4
+pydicom>=3,<4
+nibabel>=5,<6
